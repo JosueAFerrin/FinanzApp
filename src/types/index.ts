@@ -64,6 +64,10 @@ export interface MonthlyReport {
   savings_percentage: number;
   fixed_expenses: number;
   variable_expenses: number;
+  total_recurring: number;
+  initial_balance: number;
+  available_balance: number;
+  estimated_free_balance: number;
 }
 
 export interface AnnualReport {
@@ -81,6 +85,10 @@ export interface DashboardData {
   income_change: number | null;
   expense_change: number | null;
   savings_change: number | null;
+  total_recurring: number;
+  initial_balance: number;
+  available_balance: number;
+  estimated_free_balance: number;
 }
 
 export interface CategoryBreakdown {

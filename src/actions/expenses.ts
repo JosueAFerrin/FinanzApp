@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { expenseSchema } from '@/lib/validations/schemas';
 import type { ActionResult, Expense, PaginatedResponse, FilterParams } from '@/types';
 import { PAGE_SIZE } from '@/lib/constants';
+import { revalidatePath } from 'next/cache';
 
 export async function getExpenses(filters: FilterParams = {}): Promise<ActionResult<PaginatedResponse<Expense>>> {
   const supabase = await createClient();
@@ -92,6 +93,10 @@ export async function createExpense(formData: FormData): Promise<ActionResult<Ex
     return { success: false, error: 'Error al crear el gasto' };
   }
 
+  revalidatePath('/dashboard');
+  revalidatePath('/expenses');
+  revalidatePath('/reports');
+
   return { success: true, data: data as Expense };
 }
 
@@ -131,6 +136,10 @@ export async function updateExpense(id: string, formData: FormData): Promise<Act
     return { success: false, error: 'Error al actualizar el gasto' };
   }
 
+  revalidatePath('/dashboard');
+  revalidatePath('/expenses');
+  revalidatePath('/reports');
+
   return { success: true, data: data as Expense };
 }
 
@@ -147,6 +156,10 @@ export async function deleteExpense(id: string): Promise<ActionResult> {
   if (error) {
     return { success: false, error: 'Error al eliminar el gasto' };
   }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/expenses');
+  revalidatePath('/reports');
 
   return { success: true };
 }

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { incomeSchema } from '@/lib/validations/schemas';
 import type { ActionResult, Income, PaginatedResponse, FilterParams } from '@/types';
 import { PAGE_SIZE } from '@/lib/constants';
+import { revalidatePath } from 'next/cache';
 
 export async function getIncomes(filters: FilterParams = {}): Promise<ActionResult<PaginatedResponse<Income>>> {
   const supabase = await createClient();
@@ -89,6 +90,10 @@ export async function createIncome(formData: FormData): Promise<ActionResult<Inc
     return { success: false, error: 'Error al crear el ingreso' };
   }
 
+  revalidatePath('/dashboard');
+  revalidatePath('/incomes');
+  revalidatePath('/reports');
+
   return { success: true, data: data as Income };
 }
 
@@ -128,6 +133,10 @@ export async function updateIncome(id: string, formData: FormData): Promise<Acti
     return { success: false, error: 'Error al actualizar el ingreso' };
   }
 
+  revalidatePath('/dashboard');
+  revalidatePath('/incomes');
+  revalidatePath('/reports');
+
   return { success: true, data: data as Income };
 }
 
@@ -144,6 +153,10 @@ export async function deleteIncome(id: string): Promise<ActionResult> {
   if (error) {
     return { success: false, error: 'Error al eliminar el ingreso' };
   }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/incomes');
+  revalidatePath('/reports');
 
   return { success: true };
 }

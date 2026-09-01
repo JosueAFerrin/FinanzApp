@@ -6,7 +6,7 @@ import { getIncomes, createIncome, updateIncome, deleteIncome } from '@/actions/
 import { getCategories } from '@/actions/categories';
 import type { Income, Category, FilterParams } from '@/types';
 import { INCOME_TYPES } from '@/lib/constants';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, getTodayInputDate } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -171,7 +171,7 @@ export default function IncomesPage() {
         <form onSubmit={handleSave} className="space-y-4">
           <Input id="description" name="description" label="Descripción" placeholder="Ej: Salario mensual" required defaultValue={editingIncome?.description} />
           <Input id="amount" name="amount" type="number" step="0.01" label="Monto" placeholder="0.00" required defaultValue={editingIncome?.amount} />
-          <Input id="date" name="date" type="date" label="Fecha" required defaultValue={editingIncome?.date} />
+          <Input id="date" name="date" type="date" label="Fecha" required defaultValue={editingIncome ? editingIncome.date : getTodayInputDate()} />
           <Select id="category_id" name="category_id" label="Categoría" placeholder="Selecciona una categoría" required defaultValue={editingIncome?.category_id} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
           <Select id="income_type" name="income_type" label="Tipo" placeholder="Selecciona un tipo" required defaultValue={editingIncome?.income_type} options={INCOME_TYPES.map((t) => ({ value: t.value, label: t.label }))} />
           <div className="space-y-1.5">

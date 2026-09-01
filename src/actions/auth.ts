@@ -25,10 +25,11 @@ export async function signUp(formData: FormData): Promise<ActionResult> {
   });
 
   if (error) {
+    console.error('Supabase Auth Error:', error.message, error);
     if (error.message.includes('already registered')) {
       return { success: false, error: 'Este email ya está registrado' };
     }
-    return { success: false, error: 'Error al crear la cuenta. Intenta de nuevo.' };
+    return { success: false, error: error.message || 'Error al crear la cuenta. Intenta de nuevo.' };
   }
 
   // Create default categories for the new user
@@ -71,6 +72,7 @@ export async function signIn(formData: FormData): Promise<ActionResult> {
   });
 
   if (error) {
+    console.error('Supabase SignIn Error:', error.message, error);
     return { success: false, error: 'Email o contraseña incorrectos' };
   }
 

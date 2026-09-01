@@ -7,7 +7,7 @@ import { getExpenses, createExpense, updateExpense, deleteExpense } from '@/acti
 import { getCategories } from '@/actions/categories';
 import type { Expense, Category, FilterParams } from '@/types';
 import { EXPENSE_TYPE_LABELS } from '@/lib/constants';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, getTodayInputDate } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -160,7 +160,7 @@ function ExpensesContent() {
         <form onSubmit={handleSave} className="space-y-4">
           <Input id="description" name="description" label="Descripción" placeholder="Ej: Compra supermercado" required defaultValue={editingExpense?.description} />
           <Input id="amount" name="amount" type="number" step="0.01" label="Monto" placeholder="0.00" required defaultValue={editingExpense?.amount} />
-          <Input id="date" name="date" type="date" label="Fecha" required defaultValue={editingExpense?.date} />
+          <Input id="date" name="date" type="date" label="Fecha" required defaultValue={editingExpense ? editingExpense.date : getTodayInputDate()} />
           <Select id="category_id" name="category_id" label="Categoría" placeholder="Selecciona" required defaultValue={editingExpense?.category_id} options={categories.map((c) => ({ value: c.id, label: c.name }))} />
           <Select id="expense_type" name="expense_type" label="Tipo de gasto" placeholder="Selecciona" required defaultValue={editingExpense?.expense_type} options={[{ value: 'fixed', label: 'Fijo' }, { value: 'variable', label: 'Variable' }]} />
           <div className="space-y-1.5">

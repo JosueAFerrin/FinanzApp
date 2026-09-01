@@ -10,11 +10,15 @@ async function getMonthData(supabase: ReturnType<typeof import('@supabase/ssr').
     ? `${year + 1}-01-01`
     : `${year}-${String(month + 1).padStart(2, '0')}-01`;
 
-  const [incomeResult, expenseResult, fixedResult, variableResult] = await Promise.all([
+  const [incomeResult, expenseResult, fixedResult, variableResult, recurringResult, prevIncomeResult, prevExpenseResult, monthExpensesNotes] = await Promise.all([
     supabase.from('incomes').select('amount').gte('date', startDate).lt('date', endDate),
     supabase.from('expenses').select('amount').gte('date', startDate).lt('date', endDate),
     supabase.from('expenses').select('amount').gte('date', startDate).lt('date', endDate).eq('expense_type', 'fixed'),
     supabase.from('expenses').select('amount').gte('date', startDate).lt('date', endDate).eq('expense_type', 'variable'),
+    supabase.from('recurring_expenses').select('id, amount, frequency').eq('is_active', true),
+    supabase.from('incomes').select('amount').lt('date', startDate),
+    supabase.from('expenses').select('amount').lt('date', startDate),
+    supabase.from('expenses').select('notes').gte('date', startDate).lt('date', endDate),
   ]);
 
   const totalIncome = (incomeResult.data || []).reduce((sum: number, r: { amount: number }) => sum + Number(r.amount), 0);
@@ -22,26 +26,52 @@ async function getMonthData(supabase: ReturnType<typeof import('@supabase/ssr').
   const fixedExpenses = (fixedResult.data || []).reduce((sum: number, r: { amount: number }) => sum + Number(r.amount), 0);
   const variableExpenses = (variableResult.data || []).reduce((sum: number, r: { amount: number }) => sum + Number(r.amount), 0);
 
+  const prevIncomes = (prevIncomeResult.data || []).reduce((sum: number, r: { amount: number }) => sum + Number(r.amount), 0);
+  const prevExpenses = (prevExpenseResult.data || []).reduce((sum: number, r: { amount: number }) => sum + Number(r.amount), 0);
+  const initialBalance = prevIncomes - prevExpenses;
+
+  const paidNotesSet = new Set((monthExpensesNotes.data || []).map((e: { notes: string | null }) => e.notes).filter(Boolean));
+
+  // Only sum recurring items that have NOT been converted to an expense yet in this month
+  const totalRecurring = (recurringResult.data || []).reduce((sum: number, r: { id: string; amount: number; frequency: string }) => {
+    const noteTag = `[Recurrente:${r.id}]`;
+    const isPaid = Array.from(paidNotesSet).some((n) => typeof n === 'string' && n.includes(noteTag));
+    if (isPaid) return sum; // Already paid!
+
+    const amount = Number(r.amount);
+    if (r.frequency === 'weekly') return sum + (amount * 4);
+    if (r.frequency === 'yearly') return sum + (amount / 12);
+    return sum + amount; // monthly
+  }, 0);
+
+  const savings = calculateSavings(totalIncome, totalExpenses);
+  const availableBalance = initialBalance + totalIncome - totalExpenses;
+  const estimatedFreeBalance = availableBalance - totalRecurring;
+
   return {
     month,
     year,
     total_income: totalIncome,
     total_expenses: totalExpenses,
-    savings: calculateSavings(totalIncome, totalExpenses),
+    savings,
     savings_percentage: calculateSavingsPercentage(totalIncome, totalExpenses),
     fixed_expenses: fixedExpenses,
     variable_expenses: variableExpenses,
+    total_recurring: Math.round(totalRecurring * 100) / 100,
+    initial_balance: Math.round(initialBalance * 100) / 100,
+    available_balance: Math.round(availableBalance * 100) / 100,
+    estimated_free_balance: Math.round(estimatedFreeBalance * 100) / 100,
   };
 }
 
-export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
+export async function getDashboardData(year?: number, month?: number): Promise<ActionResult<DashboardData>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'No autorizado' };
 
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
+  const currentYear = year || now.getFullYear();
+  const currentMonth = month || (now.getMonth() + 1);
 
   const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
   const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
@@ -61,6 +91,10 @@ export async function getDashboardData(): Promise<ActionResult<DashboardData>> {
       income_change: hasPrevData ? getPercentageChange(current.total_income, previous.total_income) : null,
       expense_change: hasPrevData ? getPercentageChange(current.total_expenses, previous.total_expenses) : null,
       savings_change: hasPrevData ? getPercentageChange(current.savings, previous.savings) : null,
+      total_recurring: current.total_recurring,
+      initial_balance: current.initial_balance,
+      available_balance: current.available_balance,
+      estimated_free_balance: current.estimated_free_balance,
     },
   };
 }

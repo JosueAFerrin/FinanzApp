@@ -8,6 +8,20 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatDate(dateString: string): string {
+  if (!dateString) return '';
+  // Parse YYYY-MM-DD string directly to avoid timezone conversion offsets
+  const parts = dateString.split('-');
+  if (parts.length === 3 && parts[0].length === 4) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+    return new Intl.DateTimeFormat('es-MX', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(d);
+  }
   return new Intl.DateTimeFormat('es-MX', {
     year: 'numeric',
     month: 'short',
@@ -16,8 +30,16 @@ export function formatDate(dateString: string): string {
 }
 
 export function formatDateInput(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toISOString().split('T')[0];
+  if (!dateString) return getTodayInputDate();
+  return dateString.split('T')[0];
+}
+
+export function getTodayInputDate(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function calculateSavings(income: number, expenses: number): number {

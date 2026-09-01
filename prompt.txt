@@ -1,0 +1,813 @@
+# Desarrollo de aplicación de control financiero personal — PWA
+
+Quiero que desarrolles desde cero una aplicación web de **control financiero personal**, diseñada para funcionar tanto en **computadores como en celulares**. La aplicación debe ser una **Progressive Web App (PWA)**, responsive, instalable en dispositivos móviles y usable desde cualquier navegador moderno.
+
+## 1. Objetivo de la aplicación
+
+La aplicación permitirá a cada usuario administrar sus finanzas personales, registrando y analizando:
+
+* Ingresos.
+* Egresos.
+* Gastos fijos.
+* Gastos variables.
+* Fuentes/categorías de ingresos.
+* Fuentes/categorías de egresos.
+* Ahorro mensual.
+* Ahorro anual.
+* Resúmenes financieros mensuales y anuales.
+* Gráficos y estadísticas de comportamiento financiero.
+
+Cada cuenta debe tener sus propios datos completamente aislados de los demás usuarios.
+
+---
+
+# 2. Antes de programar
+
+Antes de escribir código:
+
+1. Analiza los requerimientos.
+2. Propón una arquitectura completa y justifica brevemente las decisiones.
+3. Selecciona el stack tecnológico más conveniente considerando:
+
+   * Desarrollo moderno.
+   * Mantenibilidad.
+   * Seguridad.
+   * Buen rendimiento.
+   * PWA.
+   * Facilidad de deployment.
+   * Herramientas gratuitas o con free tier.
+4. Define la estructura de carpetas.
+5. Define el modelo de datos y sus relaciones.
+6. Define los endpoints/API necesarios.
+7. Define las reglas de autorización y seguridad.
+8. Define las principales pantallas y flujo de navegación.
+9. Presenta este diseño antes de comenzar la implementación.
+
+No quiero que agregues tecnologías innecesarias. Prioriza una arquitectura sencilla, profesional y fácil de mantener.
+
+---
+
+# 3. Stack tecnológico
+
+Puedes elegir las tecnologías que consideres más adecuadas, pero como referencia me interesa una arquitectura similar a:
+
+### Frontend
+
+* React / Next.js.
+* TypeScript.
+* Tailwind CSS.
+* Componentes reutilizables.
+* PWA.
+* Diseño responsive mobile-first.
+
+### Backend
+
+Puedes utilizar:
+
+* Next.js API Routes / Server Actions, o
+* un backend separado con Node.js + Express/NestJS,
+
+dependiendo de cuál sea más conveniente para este proyecto.
+
+### Base de datos
+
+Utiliza una solución gratuita o con free tier que sea adecuada para producción.
+
+Opciones posibles:
+
+* PostgreSQL.
+* Supabase.
+* Neon.
+* Otra alternativa gratuita que consideres superior.
+
+La base de datos debe permitir:
+
+* Usuarios.
+* Ingresos.
+* Egresos.
+* Categorías.
+* Gastos fijos.
+* Gastos variables.
+* Registros mensuales.
+* Consultas agregadas para reportes.
+
+Si utilizas Supabase, aprovecha correctamente Row Level Security (RLS) para garantizar el aislamiento de los datos entre usuarios.
+
+---
+
+# 4. Autenticación
+
+La aplicación debe contar con autenticación segura.
+
+Como mínimo:
+
+* Registro.
+* Login.
+* Logout.
+* Recuperación de contraseña.
+* Cambio de contraseña.
+* Protección de rutas.
+* Sesiones seguras.
+* Persistencia de sesión.
+* Manejo de expiración de sesión.
+
+Cada usuario solamente puede:
+
+* Ver sus propios ingresos.
+* Ver sus propios egresos.
+* Crear sus propios registros.
+* Editar sus propios registros.
+* Eliminar sus propios registros.
+* Ver sus propios reportes.
+
+Un usuario NUNCA debe poder acceder o modificar información perteneciente a otro usuario.
+
+No confíes únicamente en validaciones del frontend. Toda autorización debe validarse también en backend/base de datos.
+
+---
+
+# 5. Módulo de ingresos
+
+Crear una sección para administrar ingresos.
+
+Cada ingreso debería permitir registrar como mínimo:
+
+* Descripción.
+* Monto.
+* Fecha.
+* Categoría/fuente.
+* Tipo de ingreso.
+* Notas opcionales.
+
+Ejemplos de fuentes:
+
+* Salario.
+* Freelance.
+* Negocio.
+* Inversiones.
+* Bonificaciones.
+* Otros.
+
+Permitir:
+
+* Crear.
+* Editar.
+* Eliminar.
+* Consultar.
+* Filtrar por fecha.
+* Filtrar por categoría.
+
+---
+
+# 6. Módulo de egresos
+
+Crear una sección para administrar gastos.
+
+Cada egreso debe permitir registrar:
+
+* Descripción.
+* Monto.
+* Fecha.
+* Categoría/fuente.
+* Tipo de gasto.
+* Notas opcionales.
+
+Diferenciar claramente:
+
+### Gastos fijos
+
+Ejemplos:
+
+* Alquiler.
+* Internet.
+* Telefonía.
+* Suscripciones.
+* Seguros.
+* Préstamos.
+
+### Gastos variables
+
+Ejemplos:
+
+* Alimentación.
+* Transporte.
+* Entretenimiento.
+* Compras.
+* Salud.
+* Educación.
+* Otros.
+
+Debe ser posible crear categorías personalizadas.
+
+---
+
+# 7. Dashboard
+
+Crear un dashboard principal que muestre de manera clara la situación financiera actual.
+
+Debe incluir tarjetas/resúmenes como:
+
+* Ingresos del mes.
+* Egresos del mes.
+* Ahorro del mes.
+* Porcentaje de ahorro.
+* Gastos fijos.
+* Gastos variables.
+
+También mostrar comparaciones con el mes anterior cuando exista información suficiente.
+
+Ejemplo:
+
+Ingresos:
+$2,000
+
+Egresos:
+$1,250
+
+Ahorro:
+$750
+
+Porcentaje de ahorro:
+37.5%
+
+---
+
+# 8. Cálculo del ahorro
+
+El sistema debe calcular automáticamente:
+
+### Ahorro mensual
+
+`Ingresos del mes - Egresos del mes`
+
+### Ahorro anual
+
+`Ingresos del año - Egresos del año`
+
+También calcular:
+
+### Porcentaje de ahorro
+
+`(Ahorro / Ingresos) * 100`
+
+Controlar correctamente casos como:
+
+* No existen ingresos.
+* No existen gastos.
+* El usuario tiene más gastos que ingresos.
+* Valores negativos.
+* Meses sin registros.
+
+No generar errores por división entre cero.
+
+---
+
+# 9. Reportes y gráficos
+
+Crear una sección específica de reportes.
+
+Debe existir una visualización mediante **gráfico de líneas** para observar la evolución financiera.
+
+Como mínimo:
+
+### Reporte mensual
+
+Mostrar por mes:
+
+* Ingresos.
+* Egresos.
+* Ahorro.
+
+Permitir seleccionar el año.
+
+Ejemplo:
+
+Enero → ingresos / egresos / ahorro
+Febrero → ingresos / egresos / ahorro
+Marzo → ingresos / egresos / ahorro
+etc.
+
+### Reporte anual
+
+Mostrar la evolución de los años disponibles.
+
+Permitir comparar:
+
+* Ingresos anuales.
+* Egresos anuales.
+* Ahorro anual.
+
+También sería útil incluir gráficos adicionales si aportan valor UX, por ejemplo:
+
+* Distribución de gastos por categoría.
+* Gastos fijos vs variables.
+* Distribución de ingresos por fuente.
+
+No sobrecargues la interfaz con gráficos innecesarios.
+
+---
+
+# 10. Gestión de categorías
+
+Crear una sección para administrar categorías.
+
+El usuario debe poder crear, editar y eliminar categorías personalizadas para:
+
+### Ingresos
+
+Ejemplo:
+
+* Salario.
+* Freelance.
+* Negocio.
+* Inversiones.
+
+### Egresos
+
+Ejemplo:
+
+* Alimentación.
+* Transporte.
+* Vivienda.
+* Entretenimiento.
+
+Las categorías deben pertenecer al usuario correspondiente.
+
+No permitir que un usuario utilice o modifique categorías privadas de otro usuario.
+
+---
+
+# 11. PWA
+
+La aplicación debe funcionar como una verdadera PWA.
+
+Implementar:
+
+* Web App Manifest.
+* Service Worker.
+* Instalación en dispositivos.
+* Iconos adecuados.
+* Splash/loading adecuado cuando corresponda.
+* Responsive design.
+* Experiencia mobile-first.
+
+La aplicación debe funcionar correctamente en:
+
+* Desktop.
+* Tablet.
+* Android.
+* iOS cuando las capacidades de PWA lo permitan.
+
+Priorizar una experiencia móvil cómoda para registrar rápidamente un gasto o ingreso.
+
+---
+
+# 12. UI/UX
+
+La interfaz debe ser moderna, limpia y profesional.
+
+Utiliza buenas prácticas de UX/UI:
+
+* Mobile-first.
+* Responsive.
+* Navegación intuitiva.
+* Jerarquía visual clara.
+* Formularios simples.
+* Validaciones claras.
+* Estados de loading.
+* Estados vacíos.
+* Estados de error.
+* Confirmación antes de acciones destructivas.
+* Feedback después de guardar/eliminar.
+* Modales o drawers cuando sean apropiados.
+* Componentes reutilizables.
+* Accesibilidad básica.
+* Buen contraste.
+* Tipografía legible.
+
+En celular, registrar un gasto debe requerir la menor cantidad de pasos posible.
+
+Utiliza una navegación apropiada para móvil, por ejemplo un bottom navigation o una alternativa que consideres mejor.
+
+---
+
+# 13. Seguridad
+
+Este punto es MUY importante.
+
+Implementa las mejores prácticas de seguridad apropiadas para una aplicación web moderna.
+
+Como mínimo:
+
+* Validación de inputs en frontend y backend.
+* Sanitización cuando sea necesaria.
+* Protección contra SQL Injection.
+* Protección contra XSS.
+* Protección contra CSRF cuando aplique.
+* Protección contra ataques de autenticación.
+* Password hashing seguro si administras las contraseñas directamente.
+* Cookies seguras cuando sean utilizadas.
+* `HttpOnly`.
+* `Secure`.
+* `SameSite`.
+* Control de sesiones.
+* Rate limiting en endpoints sensibles.
+* No exponer secretos en el frontend.
+* Variables de entorno para credenciales.
+* No almacenar contraseñas en texto plano.
+* No almacenar tokens sensibles de forma insegura.
+* Validación de autorización en servidor.
+* Principio de mínimo privilegio.
+* Headers de seguridad.
+* CORS correctamente configurado cuando aplique.
+* Manejo seguro de errores.
+* No devolver stack traces al usuario.
+* Logs sin información sensible.
+* Protección de endpoints.
+* Dependencias actualizadas y sin vulnerabilidades conocidas.
+
+Utiliza herramientas como:
+
+* Zod para validación, si aplica.
+* ORM seguro como Prisma/Drizzle, si aplica.
+* Dependabot/npm audit u otra alternativa para revisar dependencias.
+
+Si utilizas Supabase/PostgreSQL, configura correctamente las políticas de seguridad/RLS.
+
+IMPORTANTE:
+
+No quiero una aplicación que simplemente oculte datos en el frontend. La seguridad y autorización deben existir realmente en el backend/base de datos.
+
+---
+
+# 14. Deployment
+
+La aplicación debe estar preparada para deployment utilizando servicios gratuitos/free tier.
+
+Preferentemente:
+
+### Frontend
+
+Vercel.
+
+### Backend
+
+Render, Vercel o una arquitectura que permita reducir infraestructura innecesaria.
+
+### Base de datos
+
+Una alternativa gratuita como:
+
+* Supabase.
+* Neon.
+* PostgreSQL compatible.
+
+La configuración debe utilizar variables de entorno.
+
+Crear archivos/documentación indicando las variables necesarias, pero:
+
+**NUNCA colocar credenciales reales dentro del repositorio.**
+
+Crear un `.env.example`.
+
+---
+
+# 15. Arquitectura y calidad del código
+
+Quiero código:
+
+* TypeScript.
+* Modular.
+* Reutilizable.
+* Legible.
+* Mantenible.
+* Con separación de responsabilidades.
+* Sin duplicación innecesaria.
+* Sin componentes gigantes.
+* Sin lógica de negocio mezclada innecesariamente con UI.
+
+Evita:
+
+* Hardcodear datos.
+* Hardcodear credenciales.
+* Código muerto.
+* Dependencias innecesarias.
+* `any` salvo casos realmente justificados.
+* Comentarios que simplemente describan código obvio.
+
+Utiliza nombres descriptivos.
+
+---
+
+# 16. Manejo de errores
+
+Implementar manejo consistente de errores.
+
+Debe existir una estrategia para:
+
+* Errores de red.
+* Errores de autenticación.
+* Errores de autorización.
+* Errores de validación.
+* Errores de base de datos.
+* Recursos inexistentes.
+* Sesiones expiradas.
+
+Los mensajes mostrados al usuario deben ser claros y amigables, sin revelar información sensible.
+
+---
+
+# 17. Testing
+
+Implementar pruebas donde tenga sentido.
+
+Como mínimo:
+
+### Unit tests
+
+Para:
+
+* Cálculo de ahorro.
+* Cálculo de porcentajes.
+* Agregaciones mensuales.
+* Agregaciones anuales.
+* Validaciones.
+
+### Integration/API tests
+
+Para:
+
+* Registro.
+* Login.
+* Creación de ingresos.
+* Creación de egresos.
+* Autorización.
+* Acceso a datos propios.
+
+Especialmente probar que:
+
+**Usuario A no pueda acceder a los datos del Usuario B.**
+
+### E2E
+
+Implementar los flujos críticos:
+
+1. Registro.
+2. Login.
+3. Crear ingreso.
+4. Crear egreso.
+5. Ver dashboard.
+6. Ver reporte.
+7. Editar/eliminar registro.
+8. Logout.
+
+---
+
+# 18. Estructura funcional
+
+Como mínimo quiero estas secciones:
+
+### Dashboard
+
+Resumen financiero.
+
+### Ingresos
+
+Gestión de ingresos.
+
+### Egresos
+
+Gestión de gastos.
+
+### Reportes
+
+Gráficos mensuales/anuales.
+
+### Categorías
+
+Gestión de categorías.
+
+### Perfil/Configuración
+
+Información y configuración de cuenta.
+
+---
+
+# 19. Experiencia inicial
+
+Cuando un usuario nuevo ingrese por primera vez:
+
+* Mostrar un estado vacío amigable.
+* Explicar brevemente cómo comenzar.
+* Permitir registrar rápidamente su primer ingreso o gasto.
+* No mostrar gráficos engañosos cuando todavía no existen datos.
+
+---
+
+# 20. Diseño visual
+
+Quiero una estética:
+
+* Moderna.
+* Minimalista.
+* Profesional.
+* Similar a aplicaciones modernas de finanzas personales.
+
+No quiero una interfaz excesivamente cargada.
+
+Prioriza:
+
+**claridad > cantidad de funcionalidades.**
+
+Utiliza iconografía consistente y una jerarquía visual clara.
+
+---
+
+# 21. Datos y modelo
+
+Diseña correctamente las entidades necesarias.
+
+Como referencia podrían existir:
+
+* User
+* Income
+* Expense
+* Category
+* Budget, si consideras necesario
+* RecurringExpense, si consideras necesario
+
+Pero no agregues entidades solamente por agregarlas. Justifica las que sean necesarias.
+
+Considera desde el inicio:
+
+* timestamps.
+* IDs seguros.
+* relaciones.
+* índices.
+* restricciones.
+* integridad referencial.
+* eliminación segura.
+* consultas eficientes.
+
+---
+
+# 22. Gastos recurrentes
+
+Sería conveniente que la aplicación soporte gastos recurrentes/fijos.
+
+Por ejemplo:
+
+Netflix → $15 → mensual
+Internet → $30 → mensual
+Alquiler → $500 → mensual
+
+El usuario debe poder configurar:
+
+* Nombre.
+* Monto.
+* Categoría.
+* Frecuencia.
+* Fecha de inicio.
+* Fecha de finalización opcional.
+
+Diseña esto de manera que posteriormente pueda automatizarse la generación de los registros correspondientes.
+
+---
+
+# 23. Performance
+
+La aplicación debe estar optimizada para:
+
+* Cargas rápidas.
+* Consultas eficientes.
+* Evitar requests innecesarios.
+* Evitar renders innecesarios.
+* Lazy loading donde tenga sentido.
+* Optimización de gráficos.
+* Mobile performance.
+
+Utiliza paginación cuando sea necesaria.
+
+No cargues todos los registros históricos si no son necesarios.
+
+---
+
+# 24. Entregables
+
+Quiero que desarrolles el proyecto completo.
+
+Al finalizar debe existir:
+
+1. Aplicación funcional.
+2. Frontend.
+3. Backend/API si es necesario.
+4. Base de datos.
+5. Autenticación.
+6. PWA.
+7. Dashboard.
+8. CRUD de ingresos.
+9. CRUD de egresos.
+10. Categorías.
+11. Gastos recurrentes.
+12. Reportes mensuales.
+13. Reportes anuales.
+14. Gráficos.
+15. Validaciones.
+16. Manejo de errores.
+17. Tests.
+18. Configuración de deployment.
+19. `.env.example`.
+20. README completo.
+
+---
+
+# 25. README
+
+El README debe explicar:
+
+* Descripción del proyecto.
+* Arquitectura.
+* Stack tecnológico.
+* Requisitos.
+* Instalación.
+* Variables de entorno.
+* Configuración de base de datos.
+* Migraciones.
+* Ejecución local.
+* Ejecución de tests.
+* Build.
+* Deployment.
+* Configuración PWA.
+* Consideraciones de seguridad.
+
+---
+
+# 26. Forma de trabajo
+
+No intentes generar todo el proyecto de manera desordenada en una sola operación.
+
+Trabaja por fases:
+
+### Fase 1
+
+Arquitectura, stack, estructura y modelo de datos.
+
+### Fase 2
+
+Configuración inicial del proyecto y dependencias.
+
+### Fase 3
+
+Base de datos y autenticación.
+
+### Fase 4
+
+Ingresos, egresos y categorías.
+
+### Fase 5
+
+Dashboard y cálculos financieros.
+
+### Fase 6
+
+Reportes y gráficos.
+
+### Fase 7
+
+PWA y optimización mobile.
+
+### Fase 8
+
+Seguridad y hardening.
+
+### Fase 9
+
+Testing.
+
+### Fase 10
+
+Deployment y documentación.
+
+Después de cada fase verifica que lo implementado compile correctamente y que no se hayan introducido errores antes de continuar.
+
+---
+
+# 27. Regla importante
+
+No tomes decisiones arbitrarias cuando exista una alternativa técnicamente mejor.
+
+Si encuentras una decisión de arquitectura que pueda afectar:
+
+* seguridad,
+* escalabilidad,
+* costos,
+* mantenimiento,
+* performance,
+
+explícala brevemente antes de implementarla.
+
+Prioriza siempre:
+
+**Seguridad + simplicidad + mantenibilidad + buena UX.**
+
+El objetivo final es tener una aplicación financiera personal realmente funcional y preparada para ser desplegada en producción utilizando servicios gratuitos/free tier.

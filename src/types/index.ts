@@ -55,6 +55,25 @@ export interface RecurringExpense {
   category?: Category;
 }
 
+export interface RecurringIncome {
+  id: string;
+  user_id: string;
+  category_id: string;
+  name: string;
+  amount: number;
+  frequency: Frequency;
+  income_type: string;
+  is_salary: boolean;
+  salary_last_business_day: boolean;
+  payment_day: number | null;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  category?: Category;
+}
+
 export interface MonthlyReport {
   month: number;
   year: number;
@@ -65,6 +84,7 @@ export interface MonthlyReport {
   fixed_expenses: number;
   variable_expenses: number;
   total_recurring: number;
+  total_recurring_income: number;
   initial_balance: number;
   available_balance: number;
   estimated_free_balance: number;
@@ -86,6 +106,7 @@ export interface DashboardData {
   expense_change: number | null;
   savings_change: number | null;
   total_recurring: number;
+  total_recurring_income: number;
   initial_balance: number;
   available_balance: number;
   estimated_free_balance: number;

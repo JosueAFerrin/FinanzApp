@@ -74,6 +74,7 @@ export default function DashboardClient({ initialData, selectedMonth, selectedYe
     income_change,
     expense_change,
     total_recurring,
+    total_recurring_income,
     initial_balance,
     available_balance,
     estimated_free_balance,
@@ -190,12 +191,20 @@ export default function DashboardClient({ initialData, selectedMonth, selectedYe
 
           {/* Budget & Projection Banner */}
           <div className="bg-gradient-to-r from-primary-900 to-dark-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
               <div>
                 <p className="text-xs font-semibold text-primary-200 uppercase tracking-wider mb-1">Presupuesto Disponible ({currentMonthName})</p>
                 <h3 className="text-2xl font-extrabold text-white">{formatCurrency(available_balance)}</h3>
                 <p className="text-xs text-dark-300 mt-1">Saldo acumulado + ingresos del mes</p>
               </div>
+
+              {total_recurring_income > 0 && (
+                <div className="border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
+                  <p className="text-xs font-semibold text-success-300 uppercase tracking-wider mb-1">Ingresos Pendientes</p>
+                  <h3 className="text-2xl font-extrabold text-success-400">+{formatCurrency(total_recurring_income)}</h3>
+                  <p className="text-xs text-dark-300 mt-1">Salarios/ingresos recurrentes por recibir</p>
+                </div>
+              )}
 
               <div className="border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
                 <p className="text-xs font-semibold text-warning-300 uppercase tracking-wider mb-1">Compromisos Fijos (Recurrentes)</p>

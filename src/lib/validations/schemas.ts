@@ -99,6 +99,28 @@ export const recurringExpenseSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
+export const recurringIncomeSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'El nombre es obligatorio')
+    .max(100, 'Máximo 100 caracteres'),
+  amount: z
+    .number({ error: 'Ingresa un monto válido' })
+    .positive('El monto debe ser mayor a 0')
+    .max(999999999.99, 'El monto es demasiado grande'),
+  category_id: z.string().uuid('Selecciona una categoría'),
+  frequency: z.enum(['weekly', 'monthly', 'yearly'], {
+    error: 'Selecciona una frecuencia válida',
+  }),
+  income_type: z.string().min(1, 'Selecciona un tipo de ingreso'),
+  is_salary: z.boolean().default(false),
+  salary_last_business_day: z.boolean().default(false),
+  payment_day: z.number().int().min(1).max(31).nullable().optional(),
+  start_date: z.string().min(1, 'La fecha de inicio es obligatoria'),
+  end_date: z.string().nullable().optional(),
+  is_active: z.boolean().default(true),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
@@ -107,3 +129,4 @@ export type CategoryInput = z.infer<typeof categorySchema>;
 export type IncomeInput = z.infer<typeof incomeSchema>;
 export type ExpenseInput = z.infer<typeof expenseSchema>;
 export type RecurringExpenseInput = z.infer<typeof recurringExpenseSchema>;
+export type RecurringIncomeInput = z.infer<typeof recurringIncomeSchema>;

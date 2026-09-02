@@ -103,3 +103,39 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
     timeout = setTimeout(() => func(...args), wait);
   };
 }
+
+/**
+ * Returns the last business day (Mon-Fri) of the given month/year.
+ * E.g. if the last day is Saturday, it returns the preceding Friday.
+ */
+export function getLastBusinessDayOfMonth(year: number, month: number): number {
+  // month is 1-indexed
+  const lastDay = new Date(year, month, 0).getDate();
+  const date = new Date(year, month - 1, lastDay);
+  const dayOfWeek = date.getDay(); // 0=Sun, 6=Sat
+  if (dayOfWeek === 0) return lastDay - 2; // Sunday → Friday
+  if (dayOfWeek === 6) return lastDay - 1; // Saturday → Friday
+  return lastDay;
+}
+
+/**
+ * Given a recurring income item, compute what day of the month it should
+ * be paid for the specified month/year.
+ */
+export function getRecurringIncomePaymentDay(
+  item: { is_salary: boolean; salary_last_business_day: boolean; payment_day: number | null; start_date: string },
+  year: number,
+  month: number
+): number {
+  if (item.is_salary && item.salary_last_business_day) {
+    return getLastBusinessDayOfMonth(year, month);
+  }
+  if (item.payment_day) {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return Math.min(item.payment_day, daysInMonth);
+  }
+  // Fallback: use the day from start_date
+  const startDay = new Date(item.start_date).getDate() || 1;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  return Math.min(startDay, daysInMonth);
+}

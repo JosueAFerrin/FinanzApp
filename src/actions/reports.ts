@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { ActionResult, DashboardData, MonthlyReport, AnnualReport, CategoryBreakdown } from '@/types';
-import { calculateSavings, calculateSavingsPercentage, getPercentageChange } from '@/lib/utils';
+import { calculateSavings, calculateSavingsPercentage, getPercentageChange, getRecurringIncomePaymentDay } from '@/lib/utils';
 
 async function getMonthData(supabase: ReturnType<typeof import('@supabase/ssr').createServerClient>, year: number, month: number): Promise<MonthlyReport> {
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -10,15 +10,17 @@ async function getMonthData(supabase: ReturnType<typeof import('@supabase/ssr').
     ? `${year + 1}-01-01`
     : `${year}-${String(month + 1).padStart(2, '0')}-01`;
 
-  const [incomeResult, expenseResult, fixedResult, variableResult, recurringResult, prevIncomeResult, prevExpenseResult, monthExpensesNotes] = await Promise.all([
+  const [incomeResult, expenseResult, fixedResult, variableResult, recurringResult, recurringIncomeResult, prevIncomeResult, prevExpenseResult, monthExpensesNotes, monthIncomesNotes] = await Promise.all([
     supabase.from('incomes').select('amount').gte('date', startDate).lt('date', endDate),
     supabase.from('expenses').select('amount').gte('date', startDate).lt('date', endDate),
     supabase.from('expenses').select('amount').gte('date', startDate).lt('date', endDate).eq('expense_type', 'fixed'),
     supabase.from('expenses').select('amount').gte('date', startDate).lt('date', endDate).eq('expense_type', 'variable'),
     supabase.from('recurring_expenses').select('id, amount, frequency').eq('is_active', true),
+    supabase.from('recurring_incomes').select('id, amount, frequency, is_salary, salary_last_business_day, payment_day, start_date').eq('is_active', true),
     supabase.from('incomes').select('amount').lt('date', startDate),
     supabase.from('expenses').select('amount').lt('date', startDate),
     supabase.from('expenses').select('notes').gte('date', startDate).lt('date', endDate),
+    supabase.from('incomes').select('notes').gte('date', startDate).lt('date', endDate),
   ]);
 
   const totalIncome = (incomeResult.data || []).reduce((sum: number, r: { amount: number }) => sum + Number(r.amount), 0);
@@ -31,8 +33,9 @@ async function getMonthData(supabase: ReturnType<typeof import('@supabase/ssr').
   const initialBalance = prevIncomes - prevExpenses;
 
   const paidNotesSet = new Set((monthExpensesNotes.data || []).map((e: { notes: string | null }) => e.notes).filter(Boolean));
+  const paidIncomeNotesSet = new Set((monthIncomesNotes.data || []).map((e: { notes: string | null }) => e.notes).filter(Boolean));
 
-  // Only sum recurring items that have NOT been converted to an expense yet in this month
+  // Only sum recurring expense items that have NOT been converted to an expense yet in this month
   const totalRecurring = (recurringResult.data || []).reduce((sum: number, r: { id: string; amount: number; frequency: string }) => {
     const noteTag = `[Recurrente:${r.id}]`;
     const isPaid = Array.from(paidNotesSet).some((n) => typeof n === 'string' && n.includes(noteTag));
@@ -43,6 +46,32 @@ async function getMonthData(supabase: ReturnType<typeof import('@supabase/ssr').
     if (r.frequency === 'yearly') return sum + (amount / 12);
     return sum + amount; // monthly
   }, 0);
+
+  // Sum recurring income items that have NOT been deposited yet in this month
+  const totalRecurringIncome = (recurringIncomeResult.data || []).reduce(
+    (sum: number, r: { id: string; amount: number; frequency: string; is_salary: boolean; salary_last_business_day: boolean; payment_day: number | null; start_date: string }) => {
+      const noteTag = `[IngresoRecurrente:${r.id}]`;
+      const isDeposited = Array.from(paidIncomeNotesSet).some((n) => typeof n === 'string' && n.includes(noteTag));
+      if (isDeposited) return sum; // Already deposited!
+
+      // For monthly frequency, check if the payment day hasn't arrived yet
+      if (r.frequency === 'monthly') {
+        const paymentDay = getRecurringIncomePaymentDay(r, year, month);
+        const now = new Date();
+        const currentDay = now.getDate();
+        const isCurrentMonth = now.getFullYear() === year && (now.getMonth() + 1) === month;
+        // Only count as pending if current day hasn't reached payment day yet (for current month)
+        // For past/future months being viewed, always include
+        if (isCurrentMonth && currentDay >= paymentDay) return sum;
+      }
+
+      const amount = Number(r.amount);
+      if (r.frequency === 'weekly') return sum + (amount * 4);
+      if (r.frequency === 'yearly') return sum + (amount / 12);
+      return sum + amount; // monthly
+    },
+    0
+  );
 
   const savings = calculateSavings(totalIncome, totalExpenses);
   const availableBalance = initialBalance + totalIncome - totalExpenses;
@@ -58,6 +87,7 @@ async function getMonthData(supabase: ReturnType<typeof import('@supabase/ssr').
     fixed_expenses: fixedExpenses,
     variable_expenses: variableExpenses,
     total_recurring: Math.round(totalRecurring * 100) / 100,
+    total_recurring_income: Math.round(totalRecurringIncome * 100) / 100,
     initial_balance: Math.round(initialBalance * 100) / 100,
     available_balance: Math.round(availableBalance * 100) / 100,
     estimated_free_balance: Math.round(estimatedFreeBalance * 100) / 100,
@@ -92,6 +122,7 @@ export async function getDashboardData(year?: number, month?: number): Promise<A
       expense_change: hasPrevData ? getPercentageChange(current.total_expenses, previous.total_expenses) : null,
       savings_change: hasPrevData ? getPercentageChange(current.savings, previous.savings) : null,
       total_recurring: current.total_recurring,
+      total_recurring_income: current.total_recurring_income,
       initial_balance: current.initial_balance,
       available_balance: current.available_balance,
       estimated_free_balance: current.estimated_free_balance,

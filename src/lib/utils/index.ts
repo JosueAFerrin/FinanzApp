@@ -135,7 +135,8 @@ export function getRecurringIncomePaymentDay(
     return Math.min(item.payment_day, daysInMonth);
   }
   // Fallback: use the day from start_date
-  const startDay = new Date(item.start_date).getDate() || 1;
+  // Parse day from string directly to avoid UTC-to-local timezone shift
+  const startDay = parseInt(item.start_date.split('-')[2], 10) || 1;
   const daysInMonth = new Date(year, month, 0).getDate();
   return Math.min(startDay, daysInMonth);
 }

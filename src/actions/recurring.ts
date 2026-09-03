@@ -159,8 +159,10 @@ export async function processDueRecurringExpenses(): Promise<ActionResult<{ proc
   let processedCount = 0;
 
   for (const item of recurringItems) {
-    const itemStartDate = new Date(item.start_date);
-    const scheduledDay = itemStartDate.getDate() || 1;
+    // Parse day directly from the date string (YYYY-MM-DD) to avoid timezone issues.
+    // new Date("2026-09-03") is UTC midnight, and .getDate() returns local day which
+    // can be off by one in negative-UTC timezones (e.g. UTC-5: Sept 3 UTC → Sept 2 local).
+    const scheduledDay = parseInt(item.start_date.split('-')[2], 10) || 1;
 
     // Check if end_date has passed
     if (item.end_date && new Date(item.end_date) < now) {
